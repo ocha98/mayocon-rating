@@ -32,7 +32,7 @@ pub fn get_recent_contests(html: &str) -> Result<Vec<ContestInfo>>{
         let id = id.value().attr("href").ok_or(anyhow!("failed to get id."))?.to_string();
         let id = id.split("/").last().ok_or(anyhow!("failed to get id."))?.to_string();
 
-        let title = title.text().collect::<String>();
+        let title = title.text().collect::<String>().replace("Public", "").trim().to_string();
         let date = date.text().collect::<String>();
 
         let re = regex::Regex::new(r"\d{4}-\d{2}-\d{2}").unwrap();
@@ -90,11 +90,11 @@ mod tests {
         let contests = get_recent_contests(&html).unwrap();
         assert_eq!(contests.len(), 10);
 
-        assert_eq!(contests[0].title, "Public あさかつ3/25 ARC");
+        assert_eq!(contests[0].title, "あさかつ3/25 ARC");
         assert_eq!(contests[0].date, NaiveDate::from_ymd_opt(2024, 3, 25).unwrap());
         assert_eq!(contests[0].id, "8e6faef9-e924-422a-b334-8f1d3450f75c");
 
-        assert_eq!(contests[9].title, "Public あさかつ3/23 ARC");
+        assert_eq!(contests[9].title, "あさかつ3/23 ARC");
         assert_eq!(contests[9].date, NaiveDate::from_ymd_opt(2024, 3, 23).unwrap());
         assert_eq!(contests[9].id, "ed172ef4-1807-4bc6-a1fa-b40a19b59582")
     }
