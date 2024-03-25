@@ -3,6 +3,7 @@ import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 import fs from "fs";
 import Rating from "@/compornents/Rating";
+import Head from "next/head";
 
 export default function Home({data}: {data: {month: string, data: UserData[]}[]}) {
   data.forEach((d) => {
@@ -11,6 +12,13 @@ export default function Home({data}: {data: {month: string, data: UserData[]}[]}
 
   return (
     <Container>
+      <Head>
+        <meta name="twitter:card" content="summary" />
+        <meta property="og:url" content="https://mayocon.shinnshinn.dev/" />
+        <meta property="og:title" content="まよコンレート" />
+        <meta property="og:description" content="パフォからレートを計算しています" />
+        <meta property="og:image" content="https://mayocon.shinnshinn.dev/corn.png" />:
+      </Head>
       <div className="py-5 text-center">
         <h1>まよコン🌽 レーティング</h1>
         <p className="my-3">毎月リセットされます</p>
@@ -23,7 +31,7 @@ export default function Home({data}: {data: {month: string, data: UserData[]}[]}
         {
           data.map((d) => {
             return (
-              <Tab eventKey={d.month} title={`${d.month}月`}>
+              <Tab eventKey={d.month} title={`${d.month}月`} key={d.month}>
                 <Table className="text-center fs-5" striped bordered hover>
                   <thead>
                     <tr>
@@ -36,7 +44,7 @@ export default function Home({data}: {data: {month: string, data: UserData[]}[]}
                     {
                       d.data.map((d, idx) => {
                         return (
-                          <tr>
+                          <tr key={idx}>
                               <td>{idx + 1}</td>
                               <td><Rating rate={d.rate} txt={d.username} /></td>
                               <td>
