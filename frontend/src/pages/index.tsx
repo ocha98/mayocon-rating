@@ -21,7 +21,10 @@ export default function Home({data}: {data: {month: string, data: UserData[]}[]}
       </Head>
       <div className="py-5 text-center">
         <h1>まよコン🌽 レーティング</h1>
-        <p className="my-3">毎月リセットされます</p>
+        <div className="my-3">
+          <p>毎月リセットされます</p>
+          <p><a href="https://github.com/ocha98/mayocon-rating">GitHub</a></p>
+        </div>
       </div>
       <Tabs
         defaultActiveKey="profile"
