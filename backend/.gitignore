@@ -1,0 +1,5 @@
+/target
+/rate
+
+data.db
+.env
