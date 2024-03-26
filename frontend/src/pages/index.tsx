@@ -4,6 +4,7 @@ import Tabs from 'react-bootstrap/Tabs';
 import fs from "fs";
 import Rating from "@/compornents/Rating";
 import Head from "next/head";
+import style from "@/styles/Home.module.css";
 
 export default function Home({data}: {data: {month: string, data: UserData[]}[]}) {
   data.sort((a, b) => parseInt(b.month) - parseInt(a.month));
@@ -14,6 +15,8 @@ export default function Home({data}: {data: {month: string, data: UserData[]}[]}
   return (
     <Container>
       <Head>
+        <title>まよコン🌽レート</title>
+        <meta name="description" content="まよコンのパフォからレートを計算しています。毎月リセットされます。" />
         <meta name="twitter:card" content="summary" />
         <meta property="og:url" content="https://mayocon.shinnshinn.dev/" />
         <meta property="og:title" content="まよコンレート" />
@@ -24,12 +27,14 @@ export default function Home({data}: {data: {month: string, data: UserData[]}[]}
         <h1>まよコン🌽 レーティング</h1>
         <div className="my-3">
           <p>毎月リセットされます</p>
-          <p><a href="https://github.com/ocha98/mayocon-rating">GitHub</a><br/><a href="discord.gg/exFTabXHhA">Discord</a></p>
+          <p>
+            <a href="https://github.com/ocha98/mayocon-rating" target="_blank" rel="noopener noreferrer">GitHub</a><br/>
+            <a href="https://discord.gg/exFTabXHhA" target="_blank" rel="noopener noreferrer">Discord</a>
+          </p>
         </div>
       </div>
       <Tabs
         defaultActiveKey={data[0].month}
-        id="uncontrolled-tab-example"
         className="mb-3"
       >
         {
@@ -50,7 +55,11 @@ export default function Home({data}: {data: {month: string, data: UserData[]}[]}
                         return (
                           <tr key={idx}>
                               <td>{idx + 1}</td>
-                              <td><Rating rate={d.rate} txt={d.username} /></td>
+                              <td>
+                                <a className={style.username} href={`https://atcoder.jp/users/${d.username}`} target="_blank" rel="noopener noreferrer">
+                                  <Rating rate={d.rate} txt={d.username} />
+                                </a>
+                              </td>
                               <td>{d.rate}</td>
                           </tr>
                         )
