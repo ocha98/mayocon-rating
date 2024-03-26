@@ -6,6 +6,7 @@ import Rating from "@/compornents/Rating";
 import Head from "next/head";
 
 export default function Home({data}: {data: {month: string, data: UserData[]}[]}) {
+  data.sort((a, b) => parseInt(b.month) - parseInt(a.month));
   data.forEach((d) => {
     d.data.sort((a, b) => b.rate - a.rate);
   });
@@ -23,11 +24,11 @@ export default function Home({data}: {data: {month: string, data: UserData[]}[]}
         <h1>まよコン🌽 レーティング</h1>
         <div className="my-3">
           <p>毎月リセットされます</p>
-          <p><a href="https://github.com/ocha98/mayocon-rating">GitHub</a></p>
+          <p><a href="https://github.com/ocha98/mayocon-rating">GitHub</a><br/><a href="discord.gg/exFTabXHhA">Discord</a></p>
         </div>
       </div>
       <Tabs
-        defaultActiveKey="profile"
+        defaultActiveKey={data[0].month}
         id="uncontrolled-tab-example"
         className="mb-3"
       >
@@ -50,9 +51,7 @@ export default function Home({data}: {data: {month: string, data: UserData[]}[]}
                           <tr key={idx}>
                               <td>{idx + 1}</td>
                               <td><Rating rate={d.rate} txt={d.username} /></td>
-                              <td>
-                                {d.rate}
-                              </td>
+                              <td>{d.rate}</td>
                           </tr>
                         )
                       })
