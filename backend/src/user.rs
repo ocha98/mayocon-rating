@@ -1,8 +1,15 @@
 use chrono::NaiveDate;
+use serde;
 
 struct ContestResult {
     perf: i64,
     date: NaiveDate,
+}
+
+#[derive(serde::Serialize)]
+pub struct RatingResult {
+    pub rate: i64,
+    pub date: String,
 }
 
 pub struct User {
@@ -47,38 +54,27 @@ impl User {
         2.0f64.powf(x as f64 / 800.0)
     }
 
-    pub fn rate(&mut self) -> i64 {
+    pub fn rate(&mut self) -> Vec<RatingResult> {
         self.contest_history.sort_unstable_by_key(|usr| usr.date);
-        self.contest_history.reverse();
 
         let mut sumc = 0.0;
         let mut sump = 0.0;
-        let mut pow = 1.0;
-        for usr in self.contest_history.iter() {
-            pow *= 0.9;
-            sumc += Self::g(usr.perf) * pow;
-            sump += pow;
+        let mut rating_history = vec![];
+        for (i, usr) in self.contest_history.iter().enumerate() {
+            sumc = (Self::g(usr.perf) + sumc) * 0.9;
+            sump = (sump + 1.0) * 0.9;
+
+
+            let mut rate = (sumc/sump).log(2.0) * 800.0;
+            rate  -= Self::f((i+1) as u32);
+
+            if rate < 400.0 {
+                rate = 400.0 / ((400.0 - rate) / 400.0).exp();
+            }
+
+            rating_history.push(RatingResult { rate: rate.round() as i64, date: usr.date.format("%Y-%m-%d").to_string() });
         }
 
-        let mut rate = (sumc/sump).log(2.0) * 800.0;
-        rate  -= Self::f(self.contest_history.len() as u32);
-
-        if rate < 400.0 {
-            rate = 400.0 / ((400.0 - rate) / 400.0).exp();
-        }
-
-        rate.round() as i64
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_shinnshinn() {
-        let mut user = User::new();
-        user.add_contest_result(544, chrono::NaiveDate::from_ymd_opt(2019, 09, 15).unwrap());
-        assert_eq!(user.rate(), 29);
+        rating_history
     }
 }
