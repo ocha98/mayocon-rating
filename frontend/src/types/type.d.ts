@@ -1,4 +1,7 @@
 type UserData = {
     username: string
-    rate: number
+    history: [{
+        date: string
+        rate: number
+    }]
 }

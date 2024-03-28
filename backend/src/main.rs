@@ -11,6 +11,8 @@ use std::fs::File;
 use clap::Parser;
 use chrono::prelude::*;
 
+use crate::user::RatingResult;
+
 async fn fetch_latest_mayocon(mut conn: &mut sqlx::SqliteConnection) -> Result<()> {
     let today = chrono::Utc::now();
     let result = crawler::get_mayocon_result(today).with_context(|| "Failed to get mayocon result.")?;
@@ -31,13 +33,13 @@ async fn update_rate(month: u32, mut conn: &mut sqlx::SqliteConnection) -> Resul
     #[derive(serde::Serialize)]
     struct UserRating {
         username: String,
-        rate: i64,
+        history: Vec<RatingResult>,
     }
     let mut users_rating = vec![];
     for (username, mut user) in mp {
         users_rating.push( UserRating {
             username,
-            rate: user.rate(),
+            history: user.rate(),
         });
     }
 

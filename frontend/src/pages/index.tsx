@@ -5,13 +5,13 @@ import fs from "fs";
 import Rating from "@/compornents/Rating";
 import Head from "next/head";
 import style from "@/styles/Home.module.css";
+import Link from "next/link";
 
 export default function Home({data}: {data: {month: string, data: UserData[]}[]}) {
   data.sort((a, b) => parseInt(b.month) - parseInt(a.month));
   data.forEach((d) => {
-    d.data.sort((a, b) => b.rate - a.rate);
-  });
-
+    d.data.sort((a, b) => b.history[0].rate - a.history[0].rate)
+  })
   return (
     <Container>
       <Head>
@@ -23,16 +23,6 @@ export default function Home({data}: {data: {month: string, data: UserData[]}[]}
         <meta property="og:description" content="パフォからレートを計算しています" />
         <meta property="og:image" content="https://mayocon.shinnshinn.dev/corn.png" />:
       </Head>
-      <div className="py-5 text-center">
-        <h1>まよコン🌽 レーティング</h1>
-        <div className="my-3">
-          <p>毎月リセットされます</p>
-          <p>
-            <a href="https://github.com/ocha98/mayocon-rating" target="_blank" rel="noopener noreferrer">GitHub</a><br/>
-            <a href="https://discord.gg/exFTabXHhA" target="_blank" rel="noopener noreferrer">Discord</a>
-          </p>
-        </div>
-      </div>
       <Tabs
         defaultActiveKey={data[0].month}
         className="mb-3"
@@ -56,11 +46,13 @@ export default function Home({data}: {data: {month: string, data: UserData[]}[]}
                           <tr key={idx}>
                               <td>{idx + 1}</td>
                               <td>
+                                <Link className={style.username} href={`/${d.username}`}>
+                                  <Rating rate={d.history[0].rate} txt={d.username} />
+                                </Link>
                                 <a className={style.username} href={`https://atcoder.jp/users/${d.username}`} target="_blank" rel="noopener noreferrer">
-                                  <Rating rate={d.rate} txt={d.username} />
                                 </a>
                               </td>
-                              <td>{d.rate}</td>
+                              <td>{d.history[0].rate}</td>
                           </tr>
                         )
                       })
@@ -83,8 +75,13 @@ export async function getStaticProps() {
     .map((files) => {
       const json = fs.readFileSync(`${dir}/${files}`, "utf-8");
       const data: UserData[] = JSON.parse(json);
+      data.forEach((userdate) => {
+        userdate.history.sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+      })
+      data.sort((a, b) => b.history[b.history.length - 1].rate - a.history[a.history.length - 1].rate);
       return { month: files.replace(".json", ""), data};
     });
+
 
   return {
     props: {data},
