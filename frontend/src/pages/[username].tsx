@@ -13,7 +13,7 @@ import {
 import "chartjs-adapter-date-fns";
 import { Container, Tab, Tabs } from "react-bootstrap";
 import { Line } from "react-chartjs-2";
-import fs from "fs";
+import { loadRatingData } from "@/lib/backend";
 
 ChartJS.register(
   CategoryScale,
@@ -44,6 +44,7 @@ const Colors = [
 const Graph = ({username, data}: Props) => {
   data.sort((a, b) => Date.parse(b.month) - Date.parse(a.month));
   const options: ChartOptions<"line"> = {
+    animation: false,
     scales: {
       x: {
         type: 'time',
@@ -124,27 +125,15 @@ const Graph = ({username, data}: Props) => {
 export default Graph;
 
 export const getStaticPaths = async () => {
-  const dir = "./data";
-  const files = fs.readdirSync(dir);
-  const data = files.filter((files) => files.endsWith(".json"))
-    .map((files) => {
-      const json = fs.readFileSync(`${dir}/${files}`, "utf-8");
-      const data: UserData[] = JSON.parse(json);
-      data.forEach((userdate) => {
-        userdate.history.sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
-      })
-      data.sort((a, b) => b.history[b.history.length - 1].rate - a.history[a.history.length - 1].rate);
-      return { month: files.replace(".json", ""), data};
-    });
+  const data = await loadRatingData()
+  const set: Set<string> = new Set()
+  data.forEach((d) => {
+    d.data.forEach((d) => {
+      set.add(d.username)
+    })
+  })
 
-    let set: Set<string> = new Set();
-    data.forEach((d) => {
-      d.data.forEach((d) => {
-        set.add(d.username);
-      })
-    });
-
-  const paths = Array.from(set).map((username) => { return { params: {username}} } );
+  const paths = Array.from(set).map((username) => { return { params: {username}} } )
 
   return {
     paths,
@@ -153,29 +142,17 @@ export const getStaticPaths = async () => {
 }
 
 export const getStaticProps = async ({params}: {params: {username: string}}): Promise<{props: Props}> => {
-  const dir = "./data";
-  const files = fs.readdirSync(dir);
-  const data = files.filter((files) => files.endsWith(".json"))
-    .map((files) => {
-      const json = fs.readFileSync(`${dir}/${files}`, "utf-8");
-      const data: UserData[] = JSON.parse(json);
-      data.forEach((userdate) => {
-        userdate.history.sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
-      })
-      data.sort((a, b) => b.history[b.history.length - 1].rate - a.history[a.history.length - 1].rate);
-      return { month: files.replace(".json", ""), data};
-    });
-
-    const userdata = [];
-    for(let i = 0;i < data.length; ++i) {
-      if(data[i].data.filter((d) => d.username == params.username).length == 0) continue;
-      userdata.push(
-        {
-          month: data[i].month,
-          data: data[i].data.filter((d) => d.username == params.username)[0]
-        }
-      )
-    }
+  const data = await loadRatingData()
+  const userdata = []
+  for(let i = 0;i < data.length; ++i) {
+    if(data[i].data.filter((d) => d.username == params.username).length == 0) continue
+    userdata.push(
+      {
+        month: data[i].month,
+        data: data[i].data.filter((d) => d.username == params.username)[0]
+      }
+    )
+  }
 
   return {
     props: {

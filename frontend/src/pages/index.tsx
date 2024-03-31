@@ -1,17 +1,33 @@
 import { Container, Table } from "react-bootstrap";
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
-import fs from "fs";
 import Rating from "@/compornents/Rating";
 import Head from "next/head";
 import style from "@/styles/Home.module.css";
 import Link from "next/link";
+import { loadRatingData } from "@/lib/backend";
 
-export default function Home({data}: {data: {month: string, data: UserData[]}[]}) {
-  data.sort((a, b) => parseInt(b.month) - parseInt(a.month));
-  data.forEach((d) => {
-    d.data.sort((a, b) => b.history[0].rate - a.history[0].rate)
-  })
+type Props = {
+  data: {month: string, data: UserData[]}[]
+}
+
+export default function Home({ data }: Props) {
+  // sort decreasing order by month
+  const sortedData = data.sort((a, b) => parseInt(b.month) - parseInt(a.month))
+
+  const processedData = sortedData.map((monthData) => {
+      const processedUserData = monthData.data.map((userData): UserData =>  {
+        // sort decreasing order by date
+        const sortedHistory = userData.history.sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
+        return { ...userData, history: sortedHistory }
+      })
+
+      // sort decreasing order by rate
+      const sortedUserData = processedUserData.sort((a, b) => b.history[0].rate - a.history[0].rate)
+
+      return { month: monthData.month, data: sortedUserData}
+    })
+
   return (
     <Container>
       <Head>
@@ -24,11 +40,11 @@ export default function Home({data}: {data: {month: string, data: UserData[]}[]}
         <meta property="og:image" content="https://mayocon.shinnshinn.dev/corn.png" />:
       </Head>
       <Tabs
-        defaultActiveKey={data[0].month}
+        defaultActiveKey={processedData[0].month}
         className="mb-3"
       >
         {
-          data.map((d) => {
+          processedData.map((d) => {
             return (
               <Tab eventKey={d.month} title={`${d.month}月`} key={d.month}>
                 <Table className="text-center fs-5" striped bordered hover>
@@ -68,22 +84,10 @@ export default function Home({data}: {data: {month: string, data: UserData[]}[]}
   );
 }
 
-export async function getStaticProps() {
-  const dir = "./data";
-  const files = fs.readdirSync(dir);
-  const data = files.filter((files) => files.endsWith(".json"))
-    .map((files) => {
-      const json = fs.readFileSync(`${dir}/${files}`, "utf-8");
-      const data: UserData[] = JSON.parse(json);
-      data.forEach((userdate) => {
-        userdate.history.sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
-      })
-      data.sort((a, b) => b.history[b.history.length - 1].rate - a.history[a.history.length - 1].rate);
-      return { month: files.replace(".json", ""), data};
-    });
-
+export async function getStaticProps(): Promise<{props: Props}> {
+  const data = await loadRatingData()
 
   return {
-    props: {data},
+    props: { data },
   }
 }
